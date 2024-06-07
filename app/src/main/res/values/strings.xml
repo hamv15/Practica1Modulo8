@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Practica2</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="lblFabricante">Fabricante:</string>
+    <string name="lblYear">Año:</string>
+    <string name="lblVersion">Versión:</string>
+    <string name="lblMotor">Motor:</string>
+    <string name="lblPotencia">Potencia:</string>
+    <string name="lblTransmision">Transmisión:</string>
+    <string name="msj_id">Id recibido: %1$s</string>
+    <string name="msjErrorGetCarDetail">Error al obtener el elemento seleccionado.</string>
+    <string name="error_conn">Error en la conexión: %1$s</string>
+    <string name="log_respuesta_recibida">Respuesta recibida: %1$s</string>
+    <string name="video">Video:</string>
+    <string name="lblTxtVideo">Video:</string>
+</resources>
