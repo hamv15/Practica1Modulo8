@@ -32,7 +32,9 @@ data class CarDetailDTO(
     var imagen : String? = null,
 
     @SerializedName("videoUrl")
-    var videoUrl : String ? = null
+    var videoUrl : String ? = null,
 
+    @SerializedName("concesionario")
+    var concesionario: ConcesionarioDTO? = null
 
 )

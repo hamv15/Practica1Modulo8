@@ -14,4 +14,19 @@
     <string name="log_respuesta_recibida">Respuesta recibida: %1$s</string>
     <string name="video">Video:</string>
     <string name="lblTxtVideo">Video:</string>
+    <string name="mapStrLabel">Concesionario:</string>
+    <string name="error_al_reproducir_el_video">Error al reproducir el video</string>
+    <string name="carrocontrol">CarroControl</string>
+    <string name="gesti_n_de_tus_autom_viles">Gestión de tus automóviles</string>
+    <string name="correo_no_verificado">¡Correo no verificado!</string>
+    <string name="reenviar_correo_de_verificaci_n">Reenviar correo de verificación</string>
+    <string name="bienvenido">Bienvenido</string>
+    <string name="lista_de_autom_viles">Lista de automóviles</string>
+    <string name="cerrar_sesi_n">Cerrar sesión</string>
+    <string name="buttom">© CarroControl</string>
+    <string name="correo_electr_nico">Correo electrónico</string>
+    <string name="contrase_a">Contraseña</string>
+    <string name="iniciar_sesi_n">Iniciar sesión</string>
+    <string name="registrarse">Registrarse</string>
+    <string name="olvid_su_contrase_a_restablecer_aqu">¿Olvidó su contraseña? Restablecer aquí</string>
 </resources>

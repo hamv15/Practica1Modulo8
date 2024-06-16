@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.hamv15.practica2" />
+                  <option name="mobileSdkAppId" value="1:818111637091:android:b6ddb2f5141a62285a3a56" />
+                  <option name="projectId" value="idiplo-mobile-736a0" />
+                  <option name="projectNumber" value="818111637091" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

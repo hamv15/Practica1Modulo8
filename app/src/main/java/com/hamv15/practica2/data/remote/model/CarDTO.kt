@@ -19,6 +19,4 @@ data class CarDTO(
     @SerializedName("imagen")
     var imagen : String? = null
 
-
-
 )

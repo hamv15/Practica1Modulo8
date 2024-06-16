@@ -94,6 +94,7 @@ class CarsListFragment : Fragment() {
                         getString(R.string.error_conn, error.message),
                         Toast.LENGTH_SHORT
                     ).show()
+
                 }
 
             })

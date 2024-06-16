@@ -1,8 +1,5 @@
 package com.hamv15.practica2.ui.fragments
 
-import android.content.Context
-import android.content.pm.ActivityInfo
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +11,13 @@ import android.widget.MediaController
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.hamv15.practica2.R
 import com.hamv15.practica2.application.Practica2App
 import com.hamv15.practica2.data.CarRepository
@@ -24,18 +28,24 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.properties.Delegates
 
 private const val CAR_ID = "car_id"
 
-class CarDetailFragment : Fragment() {
+class CarDetailFragment : Fragment(), OnMapReadyCallback {
 
+    private lateinit var map: GoogleMap
+    private var fineLocationPermissionGranted = false
     private var _binding: FragmentCarDetailBinding? = null
-
     private val binding get() = _binding!!
-
     private var car_id: String? = null
-
     private lateinit var repository: CarRepository
+    private lateinit var nombreConcesionario: String
+    private lateinit var descripcion: String
+    private var latitud by Delegates.notNull<Double>()
+    private var longitud by Delegates.notNull<Double>()
+
+    private var isMapReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,33 +58,24 @@ class CarDetailFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
+    ): View {
         _binding = FragmentCarDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        //Programar la conexión
         repository = (requireActivity().application as Practica2App).repository
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
         lifecycleScope.launch {
-            car_id?.let {id ->
-                //val call: Call<CarDetailDTO> = repository.getGameDetail(id)
+            car_id?.let { id ->
                 val call: Call<CarDetailDTO> = repository.getCarDetail(id)
-                //Meterle media controller
                 val mc = MediaController(requireContext())
-                call.enqueue(object: Callback<CarDetailDTO> {
+                call.enqueue(object : Callback<CarDetailDTO> {
                     override fun onResponse(p0: Call<CarDetailDTO>, response: Response<CarDetailDTO>) {
                         binding.apply {
                             pbLoading.visibility = View.INVISIBLE
-                            //Asignación de labels
                             lableFabricante.text = getString(R.string.lblFabricante)
                             lablelYear.text = getString(R.string.lblYear)
                             lablelVersion.text = getString(R.string.lblVersion)
@@ -82,7 +83,6 @@ class CarDetailFragment : Fragment() {
                             lablelPotencia.text = getString(R.string.lblPotencia)
                             lablelTransmision.text = getString(R.string.lblTransmision)
                             lablelVideo.text = getString(R.string.video)
-
                             tvModel.text = response.body()?.modelo
                             tvFabricante.text = response.body()?.marca
                             tvYear.text = response.body()?.anno.toString()
@@ -90,28 +90,29 @@ class CarDetailFragment : Fragment() {
                             tvMotor.text = response.body()?.motor
                             tvPotencia.text = response.body()?.potencia
                             tvTransmision.text = response.body()?.transmision
-
-                            //Fijar la imagen a traves de http
                             Glide.with(requireActivity())
                                 .load(response.body()?.imagen)
                                 .into(ivImage)
                             mc.setAnchorView(vvVideo)
                             vvVideo.setMediaController(mc)
-                            vvVideo.setVideoURI(
-                                Uri.parse(
-                                    response.body()?.videoUrl
-                                )
-                            )
+                            vvVideo.setVideoURI(Uri.parse(response.body()?.videoUrl))
                             vvVideo.requestFocus()
                             vvVideo.setOnPreparedListener {
                                 vvVideo.start()
                             }
-
-                            // Agregar un listener para errores
+                            response.body()?.concesionario?.let { concesionario ->
+                                nombreConcesionario = concesionario.nombreConcesionario.toString()
+                                descripcion = concesionario.descripcion.toString()
+                                latitud = concesionario.latitud!!
+                                longitud = concesionario.longitud!!
+                                if (isMapReady) {
+                                    createMarker(latitud, longitud, nombreConcesionario, descripcion)
+                                }
+                            }
                             vvVideo.setOnErrorListener { mp, what, extra ->
                                 Toast.makeText(
                                     requireContext(),
-                                    "Error al reproducir el video",
+                                    getString(R.string.error_al_reproducir_el_video),
                                     Toast.LENGTH_LONG
                                 ).show()
                                 true
@@ -120,15 +121,51 @@ class CarDetailFragment : Fragment() {
                     }
 
                     override fun onFailure(p0: Call<CarDetailDTO>, p1: Throwable) {
-                        //Manejar el error sin conexión
-                        Toast.makeText(requireContext(),
-                            getString(R.string.msjErrorGetCarDetail), Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.msjErrorGetCarDetail), Toast.LENGTH_LONG
+                        ).show()
+                        requireActivity().supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, CarsListFragment())
+                            .commitAllowingStateLoss()
                     }
-
                 })
-
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+        isMapReady = true
+        if (::nombreConcesionario.isInitialized && ::descripcion.isInitialized) {
+            createMarker(latitud, longitud, nombreConcesionario, descripcion)
+        }
+        map.setOnMapLongClickListener { position ->
+            val marker = MarkerOptions()
+                .position(position)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.concesionario))
+            map.addMarker(marker)
+        }
+    }
+
+    private fun createMarker(lat: Double, long: Double, title: String, snippet: String) {
+        val coordinates = LatLng(lat, long)
+        val marker = MarkerOptions()
+            .position(coordinates)
+            .title(title)
+            .snippet(snippet)
+            .icon(BitmapDescriptorFactory.fromResource(R.drawable.concesionario))
+        map.addMarker(marker)
+        map.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(coordinates, 18f),
+            4000,
+            null
+        )
     }
 
     companion object {
@@ -140,5 +177,4 @@ class CarDetailFragment : Fragment() {
                 }
             }
     }
-
 }
